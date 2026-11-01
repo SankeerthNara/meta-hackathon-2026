@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Poshan Lens · measure</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main id="form">
+  <h1>Poshan Lens</h1>
+  <p class="sub">Height from a phone camera. Screening aid, not a diagnosis.</p>
+  <label>Child's name <input id="name" autocomplete="off"></label>
+  <label>Sex <select id="sex"><option value="girl">Girl</option><option value="boy">Boy</option></select></label>
+  <label>Age (months) <input id="age" type="number" min="0" max="60" step="1" inputmode="numeric"></label>
+  <label>Weight from scale (kg, optional) <input id="weight" type="number" min="1" max="30" step="0.1" inputmode="decimal"></label>
+  <label>MUAC from tape (cm, optional) <input id="muac" type="number" min="5" max="25" step="0.1" inputmode="decimal"></label>
+  <label>Language for the parent
+    <select id="lang"><option>Hindi</option><option>Telugu</option><option>Tamil</option><option>Kannada</option>
+      <option>Marathi</option><option>Bengali</option><option>Gujarati</option><option>Odia</option><option>English</option></select></label>
+  <details><summary>Advanced</summary>
+    <label>What SAM 3.1 should find <input id="prompt" value="child"></label>
+  </details>
+  <button id="start">Start measuring</button>
+  <p class="hint">Child stands straight against a wall, whole body in view, about 1.5 m away.
+    Then slide the phone slowly left and right (about a hand's width each way) for 5 seconds.</p>
+  <p id="err" class="err"></p>
+  <p><a href="history.html">Past measurements</a></p>
+</main>
+
+<div id="overlay" hidden>
+  <div class="hud"><div id="msg">Hold steady…</div><div class="bar"><div id="fill"></div></div><div id="stats"></div></div>
+  <button id="stop">Done</button>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const OUT_W = 480, EVERY = 3, MAX_FRAMES = 60;   // ~10 frames/s at 30 Hz, 6 s
+
+$('start').onclick = async () => {
+  $('err').textContent = '';
+  if (!$('age').value) { $('err').textContent = 'Enter the age in months.'; return; }
+  if (!navigator.xr || !(await navigator.xr.isSessionSupported('immersive-ar'))) {
+    $('err').textContent = 'This phone/browser has no WebXR AR. Use Chrome on an ARCore Android phone (see README).'; return;
+  }
+  try { await runAR(); } catch (e) { $('err').textContent = 'AR failed: ' + e.message; $('form').hidden = false; $('overlay').hidden = true; }
+};
+
+async function runAR() {
+  const session = await navigator.xr.requestSession('immersive-ar', {
+    requiredFeatures: ['camera-access'], optionalFeatures: ['dom-overlay'], domOverlay: { root: $('overlay') } });
+  $('form').hidden = true; $('overlay').hidden = false;
+  const canvas = document.createElement('canvas');
+  const gl = canvas.getContext('webgl2', { xrCompatible: true });
+  session.updateRenderState({ baseLayer: new XRWebGLLayer(session, gl) });
+  const ref = await session.requestReferenceSpace('local');
+  const binding = new XRWebGLBinding(session, gl);
+  const blit = makeBlit(gl);
+  const frames = [], blobs = [], pending = [];
+  let n = 0, start = null, stopped = false;
+  $('stop').onclick = () => { stopped = true; };
+
+  await new Promise(resolve => {
+    session.requestAnimationFrame(function onFrame(t, frame) {
+      if (stopped || frames.length >= MAX_FRAMES) { resolve(); return; }
+      session.requestAnimationFrame(onFrame);
+      const pose = frame.getViewerPose(ref);
+      if (!pose || pose.emulatedPosition) { $('msg').textContent = 'Move the phone a little so it can track…'; return; }
+      const view = pose.views[0];
+      if (!view.camera || (n++ % EVERY)) return;
+      const cw = view.camera.width, ch = view.camera.height, w = OUT_W, h = Math.round(OUT_W * ch / cw);
+      const px = blit(binding.getCameraImage(view.camera), w, h);
+      const p = view.projectionMatrix, s = w / cw;    // intrinsics of the saved (scaled) image, OpenCV convention
+      const K = [p[0] * cw / 2 * s, p[5] * ch / 2 * s, (1 - p[8]) * cw / 2 * s, (1 + p[9]) * ch / 2 * s];
+      const m = Array.from(view.transform.matrix);
+      const file = 'f' + String(frames.length).padStart(3, '0') + '.jpg';
+      frames.push({ file, w, h, K, view: m, t });
+      pending.push(toJpeg(px, w, h).then(b => blobs.push([file, b])));
+      start = start || m;
+      const d = Math.hypot(m[12] - start[12], m[13] - start[13], m[14] - start[14]);
+      $('msg').textContent = 'Slide slowly left and right…';
+      $('fill').style.width = (100 * frames.length / MAX_FRAMES) + '%';
+      $('stats').textContent = `${frames.length} frames · ${(100 * d).toFixed(0)} cm from start`;
+    });
+  });
+  await session.end();
+  $('overlay').hidden = true; $('form').hidden = false;
+  if (frames.length < 15) { $('err').textContent = 'Too few frames, try again.'; return; }
+  $('err').textContent = 'Uploading…';
+  await Promise.all(pending);
+  const child = { name: $('name').value, sex: $('sex').value, age_months: +$('age').value,
+    weight_kg: $('weight').value ? +$('weight').value : null, muac_cm: $('muac').value ? +$('muac').value : null,
+    language: $('lang').value };
+  const fd = new FormData();
+  fd.append('meta', JSON.stringify({ prompt: $('prompt').value.trim() || 'child', child, frames,
+    ua: navigator.userAgent }));
+  for (const [f, b] of blobs) fd.append('files', b, f);
+  const r = await fetch('/api/capture', { method: 'POST', body: fd });
+  if (!r.ok) { $('err').textContent = 'Upload failed: ' + await r.text(); return; }
+  location.href = 'result.html?id=' + (await r.json()).id;
+}
+
+// Draw the camera texture into a w x h framebuffer and read it back (top row first).
+function makeBlit(gl) {
+  const vs = `#version 300 es
+  in vec2 p; out vec2 uv; void main(){ uv = p * 0.5 + 0.5; gl_Position = vec4(p, 0, 1); }`;
+  const fs = `#version 300 es
+  precision mediump float; in vec2 uv; uniform sampler2D tex; out vec4 o; void main(){ o = texture(tex, uv); }`;
+  const prog = gl.createProgram();
+  for (const [type, src] of [[gl.VERTEX_SHADER, vs], [gl.FRAGMENT_SHADER, fs]]) {
+    const sh = gl.createShader(type); gl.shaderSource(sh, src); gl.compileShader(sh); gl.attachShader(prog, sh);
+  }
+  gl.linkProgram(prog);
+  const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+  let fb = null, target = null, size = '';
+  return (camTex, w, h) => {
+    if (size !== w + 'x' + h) {
+      target = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, target);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+      fb = gl.createFramebuffer(); gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, target, 0);
+      size = w + 'x' + h;
+    }
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fb); gl.viewport(0, 0, w, h);
+    gl.useProgram(prog);
+    gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, camTex);
+    gl.uniform1i(gl.getUniformLocation(prog, 'tex'), 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    const loc = gl.getAttribLocation(prog, 'p'); gl.enableVertexAttribArray(loc);
+    gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    const px = new Uint8ClampedArray(w * h * 4);
+    gl.readPixels(0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, px);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    const out = new Uint8ClampedArray(w * h * 4);          // GL rows are bottom-up: flip
+    for (let y = 0; y < h; y++) out.set(px.subarray((h - 1 - y) * w * 4, (h - y) * w * 4), y * w * 4);
+    return out;
+  };
+}
+
+function toJpeg(px, w, h) {
+  const c = new OffscreenCanvas(w, h);
+  c.getContext('2d').putImageData(new ImageData(px, w, h), 0, 0);
+  return c.convertToBlob({ type: 'image/jpeg', quality: 0.9 });
+}
+</script>
+</body>
+</html>

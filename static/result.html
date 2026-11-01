@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Poshan Lens · result</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+  <p><a href="capture.html">← New measurement</a></p>
+  <div id="wait"><h2>Measuring…</h2><p class="sub">SAM 3.1 is finding the child in every frame, Pluto turns the camera
+    move into a height, Muse Spark writes the report. About 20-40 s.</p></div>
+  <p id="err" class="err"></p>
+  <div id="res" hidden>
+    <div class="top">
+      <img id="ov" alt="Frame with the child's outline found by SAM 3.1">
+      <div>
+        <div class="big" id="height"></div>
+        <div class="sub" id="hsub"></div>
+        <div id="badges"></div>
+        <div id="qc"></div>
+      </div>
+    </div>
+    <section id="rep" hidden>
+      <h2>For the parent</h2>
+      <p class="parent" id="parent"></p>
+      <button id="speak">🔊 Read aloud</button>
+      <h2>For the worker</h2>
+      <p id="worker"></p>
+      <ul id="actions"></ul>
+    </section>
+    <section class="card" id="card">
+      <h2>Growth record</h2>
+      <table id="rec"></table>
+    </section>
+    <button onclick="print()">Print record</button>
+    <details><summary>How it was measured</summary><pre id="raw"></pre></details>
+  </div>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => `&#${c.charCodeAt(0)};`);
+const id = new URLSearchParams(location.search).get('id');
+const LANG = { Hindi: 'hi-IN', Telugu: 'te-IN', Tamil: 'ta-IN', Kannada: 'kn-IN', Marathi: 'mr-IN', Bengali: 'bn-IN',
+  Gujarati: 'gu-IN', Odia: 'or-IN', English: 'en-IN' };
+const label = { severe: 'Severe', moderate: 'Moderate', normal: 'Normal' };
+
+(async () => {
+  let r = await fetch('/api/result/' + id);
+  if (!r.ok) r = await fetch('/api/analyze/' + id, { method: 'POST' }).then(() => fetch('/api/result/' + id));
+  if (!r.ok) { $('wait').hidden = true; $('err').textContent = 'Failed: ' + await r.text(); return; }
+  show(await r.json());
+})();
+
+function show(d) {
+  $('wait').hidden = true; $('res').hidden = false;
+  $('ov').src = `/captures/${id}/overlay.jpg`;
+  $('raw').textContent = JSON.stringify(d, null, 1);
+  if (d.height_cm == null) {
+    $('height').textContent = 'No height';
+    $('hsub').textContent = `The camera did not move enough, or the child was not fully visible (${d.n_used} of ${d.n_frames} frames usable). Try again: slide further left and right, keep head and feet in view.`;
+    return;
+  }
+  $('height').textContent = d.height_cm.toFixed(1) + ' cm';
+  $('hsub').textContent = `${d.measurements_cm.length} measurements: ${d.measurements_cm.map(x => x.toFixed(1)).join(', ')} cm `
+    + (d.agreed ? '(agree)' : '(do NOT agree: measure again)') + ` · ${d.distance_m.at(-1).toFixed(2)} m away`;
+  const c = d.category || {}, z = d.z || {};
+  const b = [['Height-for-age', c.stunting, z.haz, 'stunting'], ['Weight-for-height', c.wasting, z.whz, 'wasting'],
+             ['MUAC', c.muac, null, '']];
+  $('badges').innerHTML = b.filter(x => x[1]).map(([n, v, zz, what]) =>
+    `<div class="badge ${v}">${n}: <b>${label[v]}${v !== 'normal' && what ? ' ' + what : ''}</b>${zz != null ? ` (z ${zz.toFixed(2)})` : ''}</div>`).join('')
+    + (c.refer ? '<div class="badge severe"><b>Refer today</b></div>' : '');
+  if (d.photo_check && !d.photo_check.ok) $('qc').innerHTML = `<p class="err">Photo check: ${esc(d.photo_check.issue)}</p>`;
+  const m = d.meta || {};
+  if (d.report) {
+    $('rep').hidden = false;
+    $('parent').textContent = d.report.parent_message;
+    $('worker').textContent = d.report.worker_summary;
+    $('actions').innerHTML = d.report.actions.map(a => `<li>${esc(a)}</li>`).join('');
+    $('speak').onclick = () => { const u = new SpeechSynthesisUtterance(d.report.parent_message);
+      u.lang = LANG[m.language] || 'hi-IN'; speechSynthesis.speak(u); };
+  }
+  const next = d.report ? new Date(Date.now() + d.report.follow_up_days * 864e5).toLocaleDateString('en-IN') : '';
+  const rows = [['Name', m.name], ['Sex', m.sex], ['Age', m.age_months + ' months'], ['Height (phone)', d.height_cm.toFixed(1) + ' cm'],
+    ['Weight', m.weight_kg ? m.weight_kg + ' kg' : '—'], ['MUAC', m.muac_cm ? m.muac_cm + ' cm' : '—'],
+    ['HAZ', z.haz?.toFixed(2) ?? '—'], ['WHZ', z.whz?.toFixed(2) ?? '—'], ['Refer', c.refer ? 'YES' : 'no'],
+    ['Next measurement', next], ['Note', d.report?.record_note ?? ''], ['Date', new Date().toLocaleDateString('en-IN')]];
+  $('rec').innerHTML = rows.map(([k, v]) => `<tr><th>${k}</th><td>${esc(v)}</td></tr>`).join('');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Poshan Lens · history</title><link rel="stylesheet" href="style.css"></head>
+<body><main>
+  <p><a href="capture.html">← New measurement</a></p>
+  <h1>Past measurements</h1>
+  <ul id="list"></ul>
+</main>
+<script>
+fetch('/api/captures').then(r => r.json()).then(ids => {
+  document.getElementById('list').innerHTML = ids.map(i => `<li><a href="result.html?id=${i}">${i}</a></li>`).join('') || '<li>None yet</li>';
+});
+</script>
+</body></html>

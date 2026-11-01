@@ -1,0 +1,32 @@
+:root { --ink: #1d2320; --mute: #5d6862; --bg: #f7f4ee; --accent: #c2541b; --sev: #b3261e; --mod: #b86e00; --ok: #2e7d4f; }
+* { box-sizing: border-box; }
+body { margin: 0; font: 17px/1.45 system-ui, sans-serif; color: var(--ink); background: var(--bg); }
+main { max-width: 760px; margin: 0 auto; padding: 20px 18px 60px; }
+h1 { margin: 8px 0 0; font-size: 30px; }
+h2 { font-size: 19px; margin: 26px 0 6px; }
+.sub, .hint { color: var(--mute); }
+label { display: block; margin: 12px 0; font-weight: 600; }
+input, select { display: block; width: 100%; margin-top: 4px; padding: 11px; font: inherit; border: 1px solid #c9c2b5; border-radius: 8px; background: #fff; }
+button { margin-top: 14px; padding: 13px 20px; font: inherit; font-weight: 700; color: #fff; background: var(--accent); border: 0; border-radius: 10px; }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid #1d5fbf; outline-offset: 2px; }
+#start { width: 100%; font-size: 19px; }
+.err { color: var(--sev); font-weight: 600; }
+details { margin: 14px 0; }
+pre { white-space: pre-wrap; font-size: 12px; background: #fff; padding: 10px; border-radius: 8px; }
+#overlay { position: fixed; inset: 0; display: flex; flex-direction: column; justify-content: space-between; padding: 18px; }
+.hud { background: rgba(0,0,0,.55); color: #fff; padding: 12px 14px; border-radius: 12px; }
+#msg { font-size: 20px; font-weight: 700; }
+.bar { height: 8px; background: rgba(255,255,255,.3); border-radius: 4px; margin: 8px 0; }
+#fill { height: 100%; width: 0; background: #ffb070; border-radius: 4px; }
+#stop { align-self: center; width: 60%; }
+.top { display: grid; grid-template-columns: minmax(120px, 40%) 1fr; gap: 18px; align-items: start; margin-top: 10px; }
+.top img { width: 100%; border-radius: 10px; }
+.big { font-size: 44px; font-weight: 800; }
+.badge { margin: 8px 0; padding: 8px 12px; border-radius: 8px; color: #fff; }
+.badge.severe { background: var(--sev); } .badge.moderate { background: var(--mod); } .badge.normal { background: var(--ok); }
+.parent { font-size: 21px; background: #fff; padding: 14px; border-radius: 10px; border-left: 5px solid var(--accent); }
+.card { background: #fff; padding: 4px 16px 12px; border-radius: 10px; margin-top: 22px; }
+table { width: 100%; border-collapse: collapse; }
+th, td { text-align: left; padding: 6px 4px; border-bottom: 1px solid #eee; }
+th { color: var(--mute); font-weight: 600; width: 42%; }
+@media print { body { background: #fff; } main > *:not(#res), #res > *:not(.card) { display: none; } }
