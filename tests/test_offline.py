@@ -35,8 +35,7 @@ json.dump(dict(prompt="child", frames=frames, child=dict(sex="girl", age_months=
           open(os.path.join(cap, "meta.json"), "w"))
 
 meta.sam_raw = lambda jpeg, prompt: "x"
-names = iter(f["file"] for f in frames)
-meta.masks = lambda raw, w, h: [sil[next(names)], np.zeros((h, w), bool)]  # true child + an empty decoy
+analyze.decode_all = lambda raws, fr: [[sil[f["file"]]] for f in fr]  # SAM replaced by the true silhouette
 try:
     out = analyze.run(cap, with_report=False)
     assert abs(out["height_cm"] - 100 * HEIGHT) < 3, out

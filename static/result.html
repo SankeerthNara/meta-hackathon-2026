@@ -72,6 +72,7 @@ function show(d) {
     `<div class="badge ${v}">${n}: <b>${label[v]}${v !== 'normal' && what ? ' ' + what : ''}</b>${zz != null ? ` (z ${zz.toFixed(2)})` : ''}</div>`).join('')
     + (c.refer ? '<div class="badge severe"><b>Refer today</b></div>' : '')
     + (c.implausible ? '<div class="badge moderate"><b>Implausible value (WHO flag): measure again</b></div>' : '');
+  if (!d.z || !Object.keys(d.z).length) $('badges').innerHTML += '<p class="sub">No WHO z-scores: the WHO child standards cover ages 0-60 months.</p>';
   if (d.photo_check && !d.photo_check.ok) $('qc').innerHTML = `<p class="err">Photo check: ${esc(d.photo_check.issue)}</p>`;
   const m = d.meta || {};
   if (d.report) {

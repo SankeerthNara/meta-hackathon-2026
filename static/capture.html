@@ -35,7 +35,7 @@
 
 <script>
 const $ = id => document.getElementById(id);
-const OUT_W = 480, EVERY = 3, MAX_FRAMES = 60;   // ~10 frames/s at 30 Hz, 6 s
+const OUT_W = 480, EVERY = 6, MAX_FRAMES = 45;   // ~5 frames/s at 30 Hz, 9 s: three left-right sweeps
 
 let arOK = false;  // checked up front: requestSession must run inside the tap's user activation
 if (navigator.xr) navigator.xr.isSessionSupported('immersive-ar').then(ok => arOK = ok);

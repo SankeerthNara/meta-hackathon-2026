@@ -3,7 +3,7 @@ import base64, json, os
 import numpy as np
 from dotenv import load_dotenv
 from openai import OpenAI
-from meta_sam_parser import CompletedOutcome, SegmentationMaskRecord, decode_mask_to_raster, image_segmentation_format
+from .samdecode import masks  # noqa: F401 (re-exported)
 
 load_dotenv(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env"))
 SPARK = os.getenv("MUSE_MODEL", "muse-spark-1.3")  # Standard mode (not -contributor)
@@ -29,21 +29,6 @@ def sam_raw(jpeg, prompt):
     r = client().responses.create(model="sam-3.1", input=[{"type": "message", "role": "user", "content": [
         {"type": "input_text", "text": prompt}, {"type": "input_image", "image_url": _data_url(jpeg)}]}])
     return r.output_text or ""
-
-
-def masks(raw, w, h):
-    """SAM output text -> list of full-size boolean masks (h, w)."""
-    p = image_segmentation_format().create_parser()
-    p.push(raw if raw.endswith("\n") else raw + "\n")
-    out = []
-    for rec in p.finish(CompletedOutcome()).result.records:
-        if isinstance(rec, SegmentationMaskRecord):
-            m, b = rec.mask, rec.bounds
-            crop = np.frombuffer(decode_mask_to_raster(m), np.uint8).reshape(m.height, m.width).astype(bool)
-            full = np.zeros((h, w), bool)
-            full[b.top:b.top + m.height, b.left:b.left + m.width] = crop[: h - b.top, : w - b.left]
-            out.append(full)
-    return out
 
 
 def spark_json(system, user, image_jpeg=None):

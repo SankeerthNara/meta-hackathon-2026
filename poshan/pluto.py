@@ -124,6 +124,33 @@ def pluto(frames, base=0.10, tol=0.05):
     return dict(W=W, agreed=ok, Ws=Ws, z=zs)
 
 
+def segment_W(frames):
+    """W from ONE solve over all frames of a segment (every baseline at once), or None if the motion is too small."""
+    r = solve([(f["R"], f["t"], *f["obs"]) for f in frames], frames[0]["K"])
+    if not r:
+        return None
+    zs = [f["R"][2] @ r["P"] + f["t"][2] for f in frames]
+    return float(np.median([f["fer"] * z for f, z in zip(frames, zs)])), float(np.median(zs))
+
+
+def pluto_sweep(frames, n_seg=3, tol=0.05, min_span=0.10):
+    """Pluto for a subject that sways (a person): the capture is cut into n_seg time segments, each solved over all
+    its frames (short windows see sway as parallax); 2-of-3 vote as in `pluto`; the final W is one solve over every
+    frame when the segments agree. -> same dict as `pluto`, or None."""
+    centre = np.array([-f["R"].T @ f["t"] for f in frames])
+    seg = [frames[i * len(frames) // n_seg:(i + 1) * len(frames) // n_seg] for i in range(n_seg)]
+    span = [np.ptp(centre[i * len(frames) // n_seg:(i + 1) * len(frames) // n_seg], axis=0).max() for i in range(n_seg)]
+    M = [segment_W(s) for s, sp in zip(seg, span) if sp >= min_span]
+    M = [m for m in M if m]
+    if len(M) < 2:
+        return None
+    Ws, zs = [m[0] for m in M], [m[1] for m in M]
+    W, ok = consensus([(w, True) for w in Ws], tol)
+    if ok:
+        W = segment_W(frames)[0]
+    return dict(W=W, agreed=ok, Ws=Ws, z=zs)
+
+
 def rot(rx, ry, rz):
     """Rotation from small Euler angles (rad)."""
     cx, sx, cy, sy, cz, sz = np.cos(rx), np.sin(rx), np.cos(ry), np.sin(ry), np.cos(rz), np.sin(rz)

@@ -4,11 +4,11 @@
 A capture folder holds meta.json (written by the phone page) and f000.jpg, f001.jpg, ...
 """
 import json, os, sys
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 import numpy as np
 from PIL import Image
-from . import meta, who
-from .pluto import feret, mask_obs, pluto
+from . import meta, samdecode, who
+from .pluto import feret, mask_obs, pluto_sweep
 
 D = np.diag([1.0, -1.0, -1.0])  # WebXR camera axes (x right, y up, looking down -z) -> OpenCV (y down, z forward)
 
@@ -46,6 +46,13 @@ def segment(cap, m):
         return list(ex.map(one, m["frames"]))
 
 
+def decode_all(raws, frames):
+    """Largest mask per frame. SAM masks decode in pure Python (~1 s each): spread over processes."""
+    with ProcessPoolExecutor(min(8, os.cpu_count() or 1)) as ex:
+        return list(ex.map(samdecode.masks, raws, [f["w"] for f in frames], [f["h"] for f in frames],
+                           [True] * len(frames)))
+
+
 def overlay(cap, f, mask, path):
     img = Image.open(os.path.join(cap, f["file"])).convert("RGB")
     a = np.asarray(img).copy()
@@ -57,12 +64,11 @@ def measure(cap):
     m = json.load(open(os.path.join(cap, "meta.json"), encoding="utf8"))
     raws = segment(cap, m)
     frames, lost = [], 0
-    for f, raw in zip(m["frames"], raws):
-        ms = meta.masks(raw, f["w"], f["h"])
+    for f, ms in zip(m["frames"], decode_all(raws, m["frames"])):  # the child is the biggest match
         if not ms:
             lost += 1
             continue
-        mk = max(ms, key=lambda q: q.sum())  # the child is the biggest match
+        mk = ms[0]
         if mk[0].any() or mk[-1].any():
             lost += 1  # touches top/bottom edge: head or feet cut off, Feret is not the height
             continue
@@ -70,7 +76,7 @@ def measure(cap):
         R, t = pose_cv(f["view"])
         frames.append(dict(R=R, t=t, K=[[fx, 0, cx], [0, fy, cy], [0, 0, 1]], obs=mask_obs(mk), fer=length_px(mk, R),
                            f=(fx + fy) / 2, file=f["file"], mask=mk))
-    res = pluto(frames) if len(frames) >= 10 else None
+    res = pluto_sweep(frames) if len(frames) >= 15 else None
     out = dict(n_frames=len(m["frames"]), n_used=len(frames), n_lost=lost, prompt=m["prompt"])
     if res:
         fbar = float(np.median([fr["f"] for fr in frames]))
