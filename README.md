@@ -30,7 +30,8 @@ phone (Chrome, WebXR + ARCore)        laptop / server
   ARCore's gravity direction. After that, distance in any frame is just W / mask size.
 - **WHO z-scores** come from the WHO 2006 LMS tables (`data/who`, packaged by
   [pygrowup](https://github.com/ewheeler/pygrowup)), with WHO's restricted tails beyond ±3 SD. The LLM never
-  does this maths: it gets the numbers and categories and explains them.
+  does this maths: it gets the numbers and categories and explains them. Values WHO flags as implausible
+  (|HAZ| > 6, |WHZ| > 5) are never classified. The app says "measure again" instead.
 - **Muse Spark** (`muse-spark-1.3`, Standard mode) checks one frame (is the whole body visible and standing
   straight?), then writes the report as JSON. The phone reads the parent message aloud with the browser's
   text-to-speech.
@@ -60,6 +61,9 @@ Re-run an analysis offline (SAM results are cached per frame, so a re-run costs 
 ```bash
 .venv/Scripts/python -m poshan.analyze captures/<id>
 ```
+
+Accuracy: `python -m tools.hope_check <HOPE sequence> <prompt>` (real images with ground-truth poses) and
+`python -m tools.accuracy accuracy.csv` (your own tape-measured captures). Results are in `ACCURACY.md`.
 
 Tests (no API key needed):
 ```bash

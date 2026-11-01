@@ -2,3 +2,4 @@
 .env
 captures/
 __pycache__/
+scratch/

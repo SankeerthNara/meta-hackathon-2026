@@ -37,10 +37,13 @@
 const $ = id => document.getElementById(id);
 const OUT_W = 480, EVERY = 3, MAX_FRAMES = 60;   // ~10 frames/s at 30 Hz, 6 s
 
+let arOK = false;  // checked up front: requestSession must run inside the tap's user activation
+if (navigator.xr) navigator.xr.isSessionSupported('immersive-ar').then(ok => arOK = ok);
+
 $('start').onclick = async () => {
   $('err').textContent = '';
   if (!$('age').value) { $('err').textContent = 'Enter the age in months.'; return; }
-  if (!navigator.xr || !(await navigator.xr.isSessionSupported('immersive-ar'))) {
+  if (!arOK) {
     $('err').textContent = 'This phone/browser has no WebXR AR. Use Chrome on an ARCore Android phone (see README).'; return;
   }
   try { await runAR(); } catch (e) { $('err').textContent = 'AR failed: ' + e.message; $('form').hidden = false; $('overlay').hidden = true; }

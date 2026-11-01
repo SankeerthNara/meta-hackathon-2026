@@ -13,6 +13,13 @@ CAPS = os.path.join(ROOT, "captures")
 app = FastAPI()
 
 
+@app.middleware("http")
+async def no_cache(request, call_next):
+    r = await call_next(request)
+    r.headers["Cache-Control"] = "no-store"  # the phone must never run a stale capture page
+    return r
+
+
 def cap_dir(cid):
     if not cid.isalnum():
         raise HTTPException(400, "bad id")
@@ -42,7 +49,7 @@ async def capture(meta: str = Form(...), files: list[UploadFile] = []):
 def analyze(cid: str):
     d = cap_dir(cid)
     try:
-        return {k: v for k, v in run(d).items() if k != "track_m"} | {"id": cid}
+        return {k: v for k, v in run(d).items() if not k.startswith("track")} | {"id": cid}
     except Exception as e:  # show the worker what failed instead of a blank page
         raise HTTPException(500, f"{type(e).__name__}: {e}")
 

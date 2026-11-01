@@ -39,7 +39,11 @@ a screening aid, not a diagnosis.
 - WHO 2006 LMS tables are used with WHO's restricted-tail rule beyond ±3 SD, length vs height switching at
   24 months, and weight-for-length vs weight-for-height.
 - Self-checks: exact recovery on synthetic views, a synthetic end-to-end WebXR capture (90 cm → 90.2 cm), and
-  z-scores checked against WHO's published SD columns. Real-capture accuracy is in ACCURACY.md.
+  z-scores checked against WHO's published SD columns. On real images with ground-truth camera poses (BOP HOPE),
+  live SAM 3.1 + Pluto gets distance/size right to within 2.8-6.3 % (median), and it flags the one sequence
+  where its measurements disagree. Phone accuracy against a tape measure is in ACCURACY.md.
+- Guard rails: frames where the head or feet touch the image edge are dropped, WHO implausible-value flags
+  block classification, and the Muse Spark photo check warns on a bad pose.
 
 ## Impact
 Stunting affects about a third of Indian children under five (NFHS-5: 35.5 %). Screening only works if height is

@@ -78,6 +78,7 @@ def measure(cap):
                    measurements_cm=[100 * w / fbar for w in res["Ws"]], distance_m=res["z"])
         # Pluto tracking: once W is known, distance in every frame from the mask alone
         out["track_m"] = [res["W"] / fr["fer"] for fr in frames]
+        out["track_files"] = [fr["file"] for fr in frames]
     if frames:
         mid = frames[len(frames) // 2]
         overlay(cap, mid, mid["mask"], os.path.join(cap, "overlay.jpg"))
@@ -98,7 +99,7 @@ def run(cap, with_report=True):
     if with_report and "qc_frame" in out:
         jpg = open(os.path.join(cap, out["qc_frame"]), "rb").read()
         out["photo_check"] = meta.spark_json(meta.QC_SYSTEM, "Is this photo usable?", jpg)
-    if with_report and "category" in out:
+    if with_report and "category" in out and not out["category"]["implausible"]:
         rec = dict(child={k: v for k, v in child.items() if k != "language"}, height_cm=round(out["height_cm"], 1),
                    height_measurements_cm=[round(x, 1) for x in out["measurements_cm"]],
                    measurements_agree=out["agreed"], who_z_scores={k: round(v, 2) for k, v in out["z"].items()},
@@ -110,4 +111,4 @@ def run(cap, with_report=True):
 
 if __name__ == "__main__":
     r = run(sys.argv[1], "--no-report" not in sys.argv)
-    print(json.dumps({k: v for k, v in r.items() if k != "track_m"}, indent=1, ensure_ascii=False))
+    print(json.dumps({k: v for k, v in r.items() if not k.startswith("track")}, indent=1, ensure_ascii=False))

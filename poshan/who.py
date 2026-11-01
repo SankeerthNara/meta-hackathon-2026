@@ -52,11 +52,14 @@ def zscores(sex, age_months, height_cm, weight_kg=None):
 
 
 def classify(z, muac_cm=None, age_months=None):
-    """WHO cut-offs. -> dict(stunting, wasting, muac, refer)."""
+    """WHO cut-offs. -> dict(stunting, wasting, muac, refer, implausible)."""
+    # WHO flags |HAZ| > 6 and |WHZ| > 5 as implausible: a measuring error, so no category and no referral advice
+    if abs(z.get("haz", 0)) > 6 or abs(z.get("whz", 0)) > 5:
+        return dict(stunting=None, wasting=None, muac=None, refer=False, implausible=True)
     band = lambda v, sev, mod: None if v is None else ("severe" if v < sev else "moderate" if v < mod else "normal")
     c = dict(stunting=band(z.get("haz"), -3, -2), wasting=band(z.get("whz"), -3, -2),
              muac=band(muac_cm, 11.5, 12.5) if muac_cm and age_months and 6 <= age_months < 60 else None)
-    c["refer"] = "severe" in c.values()  # SAM (WHZ < -3 or MUAC < 11.5 cm) or severe stunting: refer
+    c["refer"], c["implausible"] = "severe" in c.values(), False  # SAM (WHZ < -3 or MUAC < 11.5 cm) or severe stunting: refer
     return c
 
 
@@ -72,4 +75,5 @@ if __name__ == "__main__":
     assert abs(zscores("girl", 30, 85.0, float(r["SD0"]))["whz"]) < 0.05
     c = classify(zscores("girl", 30, 85.0, float(r["SD3neg"]) - 0.3), muac_cm=12.0, age_months=30)
     assert c["wasting"] == "severe" and c["muac"] == "moderate" and c["refer"], c
+    assert classify(zscores("girl", 30, 10.5))["implausible"]
     print("who self-checks OK")
