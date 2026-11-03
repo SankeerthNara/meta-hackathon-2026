@@ -63,21 +63,21 @@ def overlay(cap, f, mask, path):
 def measure(cap):
     m = json.load(open(os.path.join(cap, "meta.json"), encoding="utf8"))
     raws = segment(cap, m)
-    frames, lost = [], 0
+    frames, lost, cut = [], 0, 0
     for f, ms in zip(m["frames"], decode_all(raws, m["frames"])):  # the child is the biggest match
         if not ms:
             lost += 1
             continue
         mk = ms[0]
         if mk[0].any() or mk[-1].any():
-            lost += 1  # touches top/bottom edge: head or feet cut off, Feret is not the height
+            cut += 1  # touches top/bottom edge: head or feet cut off, Feret is not the height
             continue
         fx, fy, cx, cy = f["K"]
         R, t = pose_cv(f["view"])
         frames.append(dict(R=R, t=t, K=[[fx, 0, cx], [0, fy, cy], [0, 0, 1]], obs=mask_obs(mk), fer=length_px(mk, R),
                            f=(fx + fy) / 2, file=f["file"], mask=mk))
     res = pluto_sweep(frames) if len(frames) >= 15 else None
-    out = dict(n_frames=len(m["frames"]), n_used=len(frames), n_lost=lost, prompt=m["prompt"])
+    out = dict(n_frames=len(m["frames"]), n_used=len(frames), n_lost=lost, n_cut=cut, prompt=m["prompt"])
     if res:
         fbar = float(np.median([fr["f"] for fr in frames]))
         out.update(height_cm=100 * res["W"] / fbar, agreed=res["agreed"],

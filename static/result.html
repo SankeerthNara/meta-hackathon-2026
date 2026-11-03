@@ -59,7 +59,10 @@ function show(d) {
   $('raw').textContent = JSON.stringify(d, null, 1);
   if (d.height_cm == null) {
     $('height').textContent = 'No height';
-    $('hsub').textContent = `The camera did not move enough, or the child was not fully visible (${d.n_used} of ${d.n_frames} frames usable). Try again: slide further left and right, keep head and feet in view.`;
+    $('hsub').textContent = `${d.n_used} of ${d.n_frames} frames usable. `
+      + (d.n_lost ? `SAM 3.1 found no "${d.prompt}" in ${d.n_lost}. ` : '')
+      + (d.n_cut ? `Head or feet cut off in ${d.n_cut}: step back. ` : '')
+      + (d.n_used >= 15 ? 'The phone did not move enough: slide further left and right.' : '');
     return;
   }
   $('height').textContent = d.height_cm.toFixed(1) + ' cm';

@@ -12,17 +12,19 @@ Deadline: **Thu 5 Nov 2026, 07:30 IST**. Target: submit **Wed 4 Nov, 22:00 IST**
 
 Camera poses: Chrome on Android with **WebXR (ARCore)** gives the phone pose for every frame (no LiDAR, no depth sensor). Fallback if the phone has no ARCore: slide the phone along a table edge between two marks 10 cm apart (known baseline).
 
-## Hour-by-hour (IST)
-| When | What |
-|---|---|
-| Sun 1 Nov, 17-23 | Repo skeleton; copy Pluto `solve`/`consensus` (with its self-checks) from `pluto-v1`; WHO z-score module + tests; Muse Spark and SAM 3.1 clients; first real API call on one photo. |
-| Mon 2 Nov, 09-13 | Phone capture page (WebXR camera frames + poses -> laptop server). |
-| Mon 2 Nov, 14-19 | End-to-end: capture -> SAM 3.1 masks -> Pluto height -> z-scores -> Muse Spark report. |
-| Mon 2 Nov, 19-22 | **You film accuracy runs** (list below); I report error vs tape measure. |
-| Tue 3 Nov, 09-14 | UI polish (worker view, record card, language picker); stretch: MUAC from "upper arm" mask. |
-| Tue 3 Nov, 15-20 | **Record the demo video** (script: `DEMO_SCRIPT.md`). |
-| Wed 4 Nov, 09-18 | Edit video, README, submission text, fix anything the video exposed. |
-| Wed 4 Nov, 22:00 | **Submit.** Thu 00:00-07:30 is buffer only. |
+## Remaining work (updated Tue 3 Nov, 17:00 IST; deadline Thu 5 Nov 07:30 IST)
+Done: app end to end (phone capture, SAM 3.1, Pluto, WHO, Muse Spark), live API tested, first phone capture
+(145.8 cm, measurements agree), real-image accuracy check (ACCURACY.md section 1), README and submission draft.
+
+| When | What | Who |
+|---|---|---|
+| Tue 3 Nov, now | Tape-measure the person from Nov 1 (barefoot) and send the number. | you |
+| Tue 3 Nov, 18-20 | **Accuracy set:** 3 targets (that person, a second adult, a doll or chair), 2 captures each with the 9 s sweep, about 1.5 m away, whole body in view with a gap above the head and below the feet. Note each true height. | you, I analyse |
+| Tue 3 Nov, 20-21 | ACCURACY.md table and fixes from what the captures show. | me |
+| Tue 3 Nov, 21-23 | **Record the demo video** (DEMO_SCRIPT.md), using the doll or an adult. | you |
+| Wed 4 Nov, 09-13 | Edit the video (under 3 min), upload it unlisted, put the real numbers in SUBMISSION.md. | you + me |
+| Wed 4 Nov, 13-18 | Buffer: re-shoot anything weak; make the repo public or add the judges. | you |
+| Wed 4 Nov, 22:00 | **Submit.** Thursday 00:00-07:30 is emergency buffer only. | you |
 
 ## What you must film (no real children anywhere)
 - **Accuracy set** (Mon evening): 3 targets with tape-measured height: an adult standing against a wall, a ~50-70 cm doll or soft toy standing on a table, a box. Each target 3 captures at ~1 m and ~1.5 m. Write the true heights in a note.

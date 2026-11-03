@@ -4,7 +4,7 @@ Meta Global AI Developer Hackathon 2026, Indie track. Built 1-4 Nov 2026.
 
 India has about 1.4 million Anganwadi centres. Each one is supposed to measure every child under five every month,
 but measuring boards are often missing or hard to use well, and height is the measurement most often wrong.
-Poshan Lens gives an Anganwadi worker a child's **height from a 5-second phone video**, the **WHO z-scores**, a
+Poshan Lens gives an Anganwadi worker a child's **height from a 9-second phone video**, the **WHO z-scores**, a
 **severe / moderate / normal** screening result, and a **message for the parent in their own language**. It runs on
 any ARCore Android phone. It needs no LiDAR, no depth camera, no reference card and no extra hardware.
 
@@ -25,8 +25,10 @@ phone (Chrome, WebXR + ARCore)        laptop / server
 - **Pluto** is my method for measuring the real size of an unknown object from a small sideways camera move
   (developed for onboard robot-grasping perception; frozen as tag `pluto-v1` on 31 Oct 2026). Each frame's camera
   pose (R, t from ARCore) and the mask's centroid and size give linear equations in the child's 3D position and
-  the size constant W = size px × distance. Two measurements come from separate parts of the slide; if they
-  disagree by more than 5 %, a third one decides by 2-of-3 vote. Height = W / focal length, measured along
+  the size constant W = size px × distance. The capture is cut into three time segments, and
+  each one is solved over all its frames. A standing person sways a few cm, so the short 10 cm windows Pluto
+  uses on rigid objects would read that sway as parallax. Pluto's 2-of-3 vote (5 % tolerance) then accepts the
+  result, and one solve over every frame gives the final value. If the segments disagree, the app asks to measure again. Height = W / focal length, measured along
   ARCore's gravity direction. After that, distance in any frame is just W / mask size.
 - **WHO z-scores** come from the WHO 2006 LMS tables (`data/who`, packaged by
   [pygrowup](https://github.com/ewheeler/pygrowup)), with WHO's restricted tails beyond ±3 SD. The LLM never
@@ -55,7 +57,7 @@ Then open `http://localhost:8000` in Chrome on the phone. Without adb, open `chr
 `http://<laptop-ip>:8000` to "Insecure origins treated as secure", relaunch Chrome, and open that address.
 
 How to measure: the child stands straight against a wall, about 1.5 m away, with the whole body in view. Press
-**Start measuring** and slide the phone slowly left and right, about a hand's width each way, for 5 seconds.
+**Start measuring** and slide the phone slowly left and right, about a hand's width each way, until the bar fills (9 seconds).
 
 Re-run an analysis offline (SAM results are cached per frame, so a re-run costs only the Muse Spark call):
 ```bash

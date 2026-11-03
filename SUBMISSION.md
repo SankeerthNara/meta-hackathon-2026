@@ -2,14 +2,14 @@
 
 **Project name:** Poshan Lens
 
-**Tagline (one line):** A child's height, WHO growth status and a parent message in their own language, all from a 5-second phone video. No measuring board needed.
+**Tagline (one line):** A child's height, WHO growth status and a parent message in their own language, all from a 9-second phone video. No measuring board needed.
 
 **Track / theme:** Indie · Build for Your World (also fits Push the Frontier: metric 3D measurement from a moving phone camera)
 
 ## Short description (~100 words)
 India's 1.4 million Anganwadi workers are meant to measure every child under five every month. Height is the
 measurement that reveals stunting, and it is the one most often skipped or wrong. With Poshan Lens the worker
-slides an ordinary Android phone sideways for five seconds. SAM 3.1 finds the child in every frame. Pluto, my
+slides an ordinary Android phone left and right for nine seconds. SAM 3.1 finds the child in every frame. Pluto, my
 motion-measurement method, turns the phone's ARCore motion and the masks into a height in centimetres, using two
 independent measurements and a third vote if they disagree. Code computes the WHO z-scores. Muse Spark checks the
 photo and explains the result to the worker and the parent in Hindi, Telugu or another Indian language. It is
@@ -32,8 +32,9 @@ a screening aid, not a diagnosis.
 ## Technical depth
 - Pluto solves a weighted linear system per motion window: each frame adds centroid-parallax rows and a size
   (looming) row, with unknowns the child's 3D position and the size constant W = size px × distance. It takes
-  non-overlapping measurements, each the median of 5 windows, and a 2-of-3 consensus when the first two
-  disagree by more than 5 %. Height comes from the mask extent along ARCore's gravity vector.
+  three time-segment measurements (each solved over all its frames, robust to a person's sway; short windows
+  were not: 131/156/204 cm on the first phone capture vs 107/148/148 with segments), and a 2-of-3 consensus
+  with 5 % tolerance. Height comes from the mask extent along ARCore's gravity vector.
 - Camera poses come from WebXR `camera-access` (ARCore) in Chrome, so it needs no app install, no LiDAR and no
   depth sensor. The phone saves each frame with its exact intrinsics, taken from the projection matrix.
 - WHO 2006 LMS tables are used with WHO's restricted-tail rule beyond ±3 SD, length vs height switching at
