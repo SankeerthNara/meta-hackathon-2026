@@ -1,9 +1,12 @@
 import React from "react";
-import { Composition, staticFile } from "remotion";
+import { Composition, Still, staticFile } from "remotion";
 import { getAudioDurationInSeconds } from "@remotion/media-utils";
 import { Main, FPS } from "./Main";
+import { Thumbnail } from "./Thumbnail";
 
 export const Root: React.FC = () => (
+  <>
+  <Still id="Thumbnail" component={Thumbnail} width={1920} height={1080} />
   <Composition
     id="Main"
     component={Main}
@@ -16,4 +19,5 @@ export const Root: React.FC = () => (
       durationInFrames: Math.ceil((await getAudioDurationInSeconds(staticFile("narration.mp3")) + 2) * FPS),
     })}
   />
+  </>
 );
