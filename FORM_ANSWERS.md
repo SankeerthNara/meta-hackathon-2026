@@ -46,7 +46,13 @@ The two hard parts of the problem are exactly what these models do and ordinary 
 - The design keeps each part where it is trustworthy: geometry and WHO maths are deterministic code, and the Meta
   models do perception and language. That combination makes the result both automatic and auditable.
 
-## Provide feedback from your experience using partner technologies.
+## Which problem statement did you build towards?*
+Build for Your World
+
+## Provide feedback from your experience using partner technologies. (150-character limit, 145 used)
+OpenAI-compatible Meta API worked first try; SAM 3.1 masks were excellent. Python mask decoding is slow (~1 s/mask); a faster decoder would help.
+
+Longer version (only if a field allows it):
 What worked well:
 - The Meta Model API is OpenAI-compatible. The stock `openai` Python SDK worked first time for both SAM 3.1 and
   Muse Spark, with only a base-URL change.
