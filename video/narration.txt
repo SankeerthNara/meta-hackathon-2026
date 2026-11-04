@@ -1,0 +1,19 @@
+Every month, in one point four million Anganwadi centres across India, a health worker is meant to measure every child under five. Height is the number that reveals stunting. And stunting affects more than one in three Indian children under five.
+
+But height is the measurement most often skipped, or done wrong. Measuring boards go missing. Tapes slip. A child won't stand still. And a number in a register means nothing to a worried mother.
+
+This is Poshan Lens. The worker types the child's age and weight, points an ordinary Android phone at the child, and slides it slowly left and right for nine seconds. No measuring board. No depth camera. No special hardware.
+
+Here is what happens inside. Chrome tracks exactly how the phone moved, using ARCore. Meta's SAM 3.1 finds the child in every single frame, from just one word: child. No training data, and no photos of real children needed.
+
+Then Pluto, my measurement method, turns that small sideways motion into a real height in centimetres. Pluto doesn't trust a single reading. It takes three independent measurements from different parts of the sweep, and at least two must agree. On our first real phone test, the readings were one hundred and seven, one hundred and forty eight, and one hundred and forty eight centimetres. Pluto threw out the outlier and kept the answer the other two agreed on.
+
+Next, plain code computes the World Health Organization growth z-scores. The language model never does the maths, so every number can be audited.
+
+Finally, Meta's Muse Spark does what code cannot. It checks the photo, and warns if the child is sitting, or cut off. And it explains the result: a short checklist for the worker, and a kind message for the mother, in her own language and script. Hindi, Telugu, Tamil, and more. The phone reads it aloud, for parents who cannot read.
+
+If a child is severely stunted, the message is simple: visit the health centre today.
+
+Poshan Lens costs about fifteen US cents per child, and runs on phones workers already carry. It is a screening aid, not a diagnosis. Its job is to make sure no child is missed.
+
+Poshan Lens. Built with SAM 3.1 and Muse Spark, on the Meta Model API.
