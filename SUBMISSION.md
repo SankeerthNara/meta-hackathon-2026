@@ -10,8 +10,8 @@
 India's 1.4 million Anganwadi workers are meant to measure every child under five every month. Height is the
 measurement that reveals stunting, and it is the one most often skipped or wrong. With Poshan Lens the worker
 slides an ordinary Android phone left and right for nine seconds. SAM 3.1 finds the child in every frame. Pluto, my
-motion-measurement method, turns the phone's ARCore motion and the masks into a height in centimetres, using two
-independent measurements and a third vote if they disagree. Code computes the WHO z-scores. Muse Spark checks the
+motion-measurement method, turns the phone's ARCore motion and the masks into a height in centimetres, using three
+independent measurements from the sweep and a 2-of-3 vote. Code computes the WHO z-scores. Muse Spark checks the
 photo and explains the result to the worker and the parent in Hindi, Telugu or another Indian language. It is
 a screening aid, not a diagnosis.
 
@@ -57,7 +57,7 @@ mask, and a pilot with an ICDS block, validated against measuring boards.
 
 ## Safety
 Screening aid only. "Severe" always means refer today. The language model never changes the numbers. No real
-children were filmed. The demo uses a doll and adults. Captured frames stay on the worker's own server
+children were filmed. Testing used an adult volunteer and objects. Captured frames stay on the worker's own server
 (gitignored) and are sent only to the Meta Model API in Standard mode, where they are not used for training.
 
 **Repo:** https://github.com/SankeerthNara/meta-hackathon-2026 (private; add the judges or make it public before submitting)
