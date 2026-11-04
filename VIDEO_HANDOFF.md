@@ -13,7 +13,7 @@ Nov 1 volunteer's photos (no consent for publishing). Say "screening aid, not a 
 - [ ] Runway video clips: NOT possible. The ElevenLabs plan has no video generation ("needs a paid plan"), and
       Runway Gen-4 Turbo needs a start image. The video uses stills with slow push-ins (Ken Burns) plus animated
       Remotion scenes instead. Scenes 3 and 7 are drawn in Remotion (the free image queue was busy).
-- [ ] `video/src/Main.tsx` (10 scenes, timed to narration word counts) renders -> `video/out/poshan-lens.mp4`
+- [x] `video/src/Main.tsx` (10 scenes, timed to narration word counts) rendered -> `video/out/poshan-lens.mp4` (2:30, 1080p, also copied to `submission/`)
 - [ ] Uploaded, link pasted into the form
 
 ElevenLabs flow with all assets: https://elevenlabs.io/app/flows/3j6QJR0C7ouEQLxR1GF4
