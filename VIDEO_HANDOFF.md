@@ -8,10 +8,15 @@ Rules: no real children's faces. AI-generated children only from behind or at a 
 Nov 1 volunteer's photos (no consent for publishing). Say "screening aid, not a diagnosis".
 
 ## Status (update as you go)
-- [ ] Narration generated (ElevenLabs, `eleven_v4`) -> `video/public/narration.mp3`
-- [ ] Runway clips 1, 2, 3, 7 -> `video/public/clip1.mp4` ... (silent, 5-10 s each)
-- [ ] Remotion project renders all scenes with narration -> `video/out/poshan-lens.mp4`
+- [x] Narration generated (ElevenLabs `eleven_v4`, voice "Malar", 148 s) -> `video/public/narration.mp3`
+- [x] Stills for scenes 1-2 (ElevenLabs image model) -> `video/public/img1.png`, `img2.png`
+- [ ] Runway video clips: NOT possible. The ElevenLabs plan has no video generation ("needs a paid plan"), and
+      Runway Gen-4 Turbo needs a start image. The video uses stills with slow push-ins (Ken Burns) plus animated
+      Remotion scenes instead. Scenes 3 and 7 are drawn in Remotion (the free image queue was busy).
+- [ ] `video/src/Main.tsx` (10 scenes, timed to narration word counts) renders -> `video/out/poshan-lens.mp4`
 - [ ] Uploaded, link pasted into the form
+
+ElevenLabs flow with all assets: https://elevenlabs.io/app/flows/3j6QJR0C7ouEQLxR1GF4
 
 ## Narration script (about 430 words, about 3:00)
 See `video/narration.txt` (same text, single source). Scene timings below follow it.
@@ -36,7 +41,8 @@ Runway prompts (silent, 16:9, ~10 s):
 
 ## Assembly (Remotion)
 ```bash
-cd video && npm install && npx remotion render Main out/poshan-lens.mp4
+cd video && npm install && npx remotion render src/index.ts Main out/poshan-lens.mp4
+npx remotion studio src/index.ts   # live preview to tweak scenes
 ```
 `video/src/` holds the composition. Scene durations are in `video/src/Main.tsx`. Adjust them to the narration
 length (Remotion's `getAudioDurationInSeconds`).
