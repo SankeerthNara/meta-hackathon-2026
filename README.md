@@ -78,7 +78,8 @@ Tests (no API key needed):
 About 60 frames per measurement × $2.50 per 1,000 SAM images ≈ $0.15, plus less than $0.01 of Muse Spark.
 
 ## Limits (honest list)
-- Accuracy on real captures: see `ACCURACY.md` (doll and adults with tape-measured heights).
+- Phone accuracy against a tape measure has not been measured yet. `ACCURACY.md` has the real-image check
+  with ground-truth poses, and `tools/accuracy.py` is ready for tape-measured captures.
 - Children under 2 are measured lying down (length). The app then uses the Feret diameter of the mask, which
   is a shortcut that assumes the child lies straight.
 - Height from a mask includes hair and shoes. Measure barefoot.

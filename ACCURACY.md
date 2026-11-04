@@ -14,6 +14,10 @@ orbits them. This is a harder motion than the sideways slide the app asks for.
 
 Height error equals distance error, because height = W / f and distance = W / size px use the same W.
 
-## 2. Phone captures, tape-measured (to do 2 Nov)
-Doll, adult and box, each with a tape-measured height, 3 captures each at about 1 m and 1.5 m. List them in
+## 2. Phone captures
+First phone capture (an adult, Chrome WebXR + ARCore, live SAM 3.1 masks): the three time-segment measurements
+gave 107 / 148 / 148 cm, and the vote's result was 145.8 cm. The true height was not tape-measured before the deadline.
+Short 10 cm windows on the same capture gave 131 / 156 / 204 cm, which is why the app uses whole segments.
+
+To extend this: Doll, adult and box, each with a tape-measured height, 3 captures each at about 1 m and 1.5 m. List them in
 `accuracy.csv` (`id,target,true_cm`) and run `python -m tools.accuracy accuracy.csv`.

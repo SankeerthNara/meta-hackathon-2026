@@ -42,7 +42,9 @@ a screening aid, not a diagnosis.
 - Self-checks: exact recovery on synthetic views, a synthetic end-to-end WebXR capture (90 cm → 90.2 cm), and
   z-scores checked against WHO's published SD columns. On real images with ground-truth camera poses (BOP HOPE),
   live SAM 3.1 + Pluto gets distance/size right to within 2.8-6.3 % (median), and it flags the one sequence
-  where its measurements disagree. Phone accuracy against a tape measure is in ACCURACY.md.
+  where its measurements disagree. On the first real phone capture (an adult, ARCore poses, live SAM 3.1), the three
+  segment measurements gave 107 / 148 / 148 cm, and the 2-of-3 vote rejected the outlier. A tape-measure
+  comparison on the phone was not finished before the deadline.
 - Guard rails: frames where the head or feet touch the image edge are dropped, WHO implausible-value flags
   block classification, and the Muse Spark photo check warns on a bad pose.
 
